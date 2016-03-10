@@ -7,15 +7,17 @@ tree$tip.label <- gsub("_"," ", tree$tip.label); tree$tip.label[8] <- "E. tenuir
 discrete.data <- read.csv(file="eucDataDiscretized.csv", stringsAsFactors=FALSE, row.names=1) #death to factors.
 continuous.data <- read.csv(file="eucDataContinuous.csv", stringsAsFactors=FALSE, row.names=1) #death to factors.
 
-cleaned.continuous <- CleanData(tree, continuous.data)
+cleaned.continuous <- CleanData(tree, continuous.data[,c(2,4)])
 cleaned.discrete <- CleanData(tree, discrete.data)
 VisualizeData.continuous(tree, cleaned.continuous)
 VisualizeData.discrete(tree, cleaned.discrete)
 
 #First, start basic. What is the rate of evolution of your trait on the tree? 
 
-BM1 <- fitContinuous(tree, cleaned.continuous$data, model="BM")
-print(paste("The rate of evolution is", round(BM1$aggregation$opt$sigsq, 2)/50000000, "in units of", "number of changes per million years (given that the tree age is 50 MY)"))
+BM1 <- fitContinuous(tree, log(cleaned.continuous$data), model="BM")
+
+print(paste("The rate of evolution of mean elevation is", round(BM1$ala.Elevation$opt$sigsq, 2), "change in log meters per arbitrary time unit"))
+print(paste("The rate of evolution of range envelope is", round(BM1$range.envelope$opt$sigsq, 2), "change in log 10 square kilometers per arbitrary time unit"))
 #Important: What are the rates of evolution? In what units?
 
 

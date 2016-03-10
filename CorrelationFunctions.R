@@ -39,6 +39,12 @@ CleanData <- function(phy, data) {
 	treedata(phy, data, sort=TRUE)
 }
 
+
+phy <- read.tree("eucTree.tre")
+phy $tip.label <- gsub("_"," ", phy $tip.label); phy $tip.label[8] <- "E. tenuiramis"
+data <- read.csv(file="eucDataContinuous.csv", stringsAsFactors=FALSE, row.names=1) #death to factors.
+
+
 RunContrasts <- function(phy, data, output.pdf="PIC.pdf") {
 	# Include here approaches to save plots, 
 	quartz(height=5,width=5,type="pdf",dpi=600,file= output.pdf)
@@ -46,13 +52,23 @@ RunContrasts <- function(phy, data, output.pdf="PIC.pdf") {
 	layout(matrix(c(1,2,3,3), 2,2, byrow=T))
 	Dat <- treedata(phy, data, sort=TRUE)$data
 	Phy <- treedata(phy, data, sort=TRUE)$phy
-	pic1<-pic(Dat[,1], Phy); pic1pos <- pic1*sign(pic1); hist((pic1pos), main="Positivized trait 1 PIC's")
+	pic1<-pic(Dat[,1], Phy)
+	pic2<-pic(Dat[,2], Phy)
+	pic1pos <- pic1
+	pic2pos <- pic2	
+	for(i in 1:length(pic1)){
+		if(pic1[i]<0){
+			pic1pos[i] <- pic1[i]*(-1)
+			pic2pos[i] <- pic2[i]*(-1)
+		}
+	}
+    hist((pic1pos), main="Positivized trait 1 PIC's")
 	print("Shapiro-Wilk Normality Test for positivized trait 1 PIC's:"); print(normalTest(pic1pos))
-	pic2<-pic(Dat[,2], Phy); pic2pos <- pic2*sign(pic2); hist((pic2pos), main="Positivized trait 2 PIC's")
+	hist((pic2pos), main="Positivized trait 2 PIC's")
 	print("Shapiro-Wilk Normality Test for positivized trait 2 PIC's:"); print(normalTest(pic2pos))
 	# regress through the origin, 
 	mod <- lm((pic2pos) ~ 0 +(pic1pos)) 
-	plot(pic1pos, pic2pos, xlim=c(0, max((pic1pos))), ylim=c(0, max((pic2pos))), main="Regression of positivized phylogenetic independent contrasts"); abline(mod)
+	plot(pic1pos, pic2pos, xlim=c(0, max(pic1pos)), ylim=c(min(pic2pos), max(pic2pos)), main="Regression of positivized phylogenetic independent contrasts"); abline(mod)
 	dev.off()
 	# and return the results.
 		print("Regression results"); print(summary(mod))
@@ -78,14 +94,14 @@ RunPagel94 <- function(phy, data) {
 }
 
 RunOtherMethod <- function(phy, data) {
-	Dat <- treedata(eucTree, eucData, sort=TRUE)$data
-	Phy <- treedata(eucTree, eucData, sort=TRUE)$phy
+	Dat <- treedata(phy, data, sort=TRUE)$data
+	Phy <- treedata(phy, data, sort=TRUE)$phy
 	modBM <- phylolm(Dat[,2] ~ Dat[,1], phy=Phy, model="BM")
 	
 	if(summary(modBM)$coefficients[2,4] > 0.05){
-		print(paste("Hypothesis test returns a p-value of ", round(summary(modBM)$coefficients[2,4],3), ", meaning that the evolution of traits is not correlated.", sep=""))
+		print(paste("Hypothesis test returns a p-value of ", round(summary(modBM)$coefficients[2,4],3), ", meaning that the evolution of the discrete traits is not correlated.", sep=""))
 	}else{
-		print(paste("Hypothesis test returns a p-value of ", round(summary(modBM)$coefficients[2,4],3), ", meaning that the evolution of traits is correlated.", sep=""))
+		print(paste("Hypothesis test returns a p-value of ", round(summary(modBM)$coefficients[2,4],3), ", meaning that the evolution of the discrete traits is correlated.", sep=""))
 		}
 }
 

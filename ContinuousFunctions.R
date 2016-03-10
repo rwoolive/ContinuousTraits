@@ -1,6 +1,7 @@
 library(ape) #utility fns
 library(geiger) #utilty fns
 library(OUwie)
+library(fBasics)
 
 #You can use code you wrote for the correlation exercise here.
 
